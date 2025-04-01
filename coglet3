@@ -1,0 +1,88 @@
+import java.io.*;
+import java.util.Scanner;//level 2 task 3
+
+public class FileEncryptionDecryption {
+
+    
+    public static String caesarCipher(String text, int shift, String mode) {
+        StringBuilder result = new StringBuilder();
+        
+        for (char character : text.toCharArray()) {
+            if (Character.isLetter(character)) {
+                char base = (Character.isUpperCase(character)) ? 'A' : 'a';
+                int offset = character - base;
+                if (mode.equals("encrypt")) {
+                    result.append((char) (base + (offset + shift) % 26));
+                } else if (mode.equals("decrypt")) {
+                    result.append((char) (base + (offset - shift + 26) % 26));
+                }
+            } else {
+                result.append(character);  
+            }
+        }
+        
+        return result.toString();
+    }
+
+   
+    public static void processFile(String filename, String mode, int shift) {
+        try {
+           
+            BufferedReader reader = new BufferedReader(new FileReader(filename));
+            StringBuilder content = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+            reader.close();
+
+        
+            String processedContent = caesarCipher(content.toString(), shift, mode);
+
+            String outputFilename = mode + "_" + shift + "_" + new File(filename).getName();
+            BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilename));
+            writer.write(processedContent);
+            writer.close();
+
+            System.out.println("Operation completed successfully! The result is saved in: " + outputFilename);
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: The file " + filename + " was not found.");
+        } catch (IOException e) {
+            System.out.println("Error reading/writing the file: " + e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Choose mode (encrypt/decrypt): ");
+        String mode = scanner.nextLine().trim().toLowerCase();
+        if (!mode.equals("encrypt") && !mode.equals("decrypt")) {
+            System.out.println("Invalid mode. Please choose 'encrypt' or 'decrypt'.");
+            return;
+        }
+
+        System.out.print("Enter the file path: ");
+        String filePath = scanner.nextLine().trim();
+        File file = new File(filePath);
+        if (!file.exists()) {
+            System.out.println("Error: The file does not exist.");
+            return;
+        }
+
+        System.out.print("Enter the shift value (1-25): ");
+        int shift;
+        try {
+            shift = Integer.parseInt(scanner.nextLine().trim());
+            if (shift < 1 || shift > 25) {
+                System.out.println("Invalid shift value. Please enter a number between 1 and 25.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter a numeric value for shift.");
+            return;
+        }
+
+        processFile(filePath, mode, shift);
+    }
